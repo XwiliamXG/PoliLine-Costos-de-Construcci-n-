@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Costos de Construcción - Santiago de Surco</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fontsource-inter@4.0.0/index.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .calculator-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-group {
+            transition: all 0.3s ease;
+        }
+        
+        .input-group:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-calculate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .cost-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .cost-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        .info-tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .info-tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a202c;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                🏗️ Calculadora de Construcción
+            </h1>
+            <p class="text-xl text-white opacity-90">
+                Santiago de Surco, Lima - Perú
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Calculator Form -->
+            <div class="calculator-card p-6 md:p-8">
+                <div class="mb-6">
+                    <img src="https://image.qwenlm.ai/public_source/36118aa5-ef1b-43cf-8f90-7318d44b7c94/1a6d5b0f9-0896-436b-8a41-1362e5916e6c.png" 
+                         alt="Edificio 5 pisos" 
+                         class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                        Parámetros del Proyecto
+                    </h2>
+                    <p class="text-gray-600 text-sm">
+                        Edificio de 5 pisos + 2 sótanos
+                    </p>
+                </div>
+
+                <!-- Área por Piso -->
+                <div class="input-group mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        📐 Área por Piso (m²)
+                        <span class="info-tooltip ml-2 text-blue-500" data-tooltip="Área construida por cada piso">ⓘ</span>
+                    </label>
+                    <input type="number" id="areaPerFloor" value="150" min="50" max="500"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
+                </div>
+
+                <!-- Calidad de Construcción -->
+                <div class="input-group mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        💎 Calidad de Construcción
+                    </label>
+                    <select id="qualityLevel" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
+                        <option value="economic">Económica (S/ 3,500/m²)</option>
+                        <option value="standard" selected>Estándar (S/ 4,500/m²)</option>
+                        <option value="premium">Premium (S/ 6,000/m²)</option>
+                        <option value="luxury">Lujo (S/ 8,000/m²)</option>
+                    </select>
+                </div>
+
+                <!-- Tipo de Sótano -->
+                <div class="input-group mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        🅿️ Uso de Sótanos
+                    </label>
+                    <select id="basementUse" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
+                        <option value="parking">Solo Estacionamiento</option>
+                        <option value="mixed" selected>Mixto (Parking + Almacén)</option>
+                        <option value="commercial">Comercial/Oficinas</option>
+                    </select>
+                </div>
+
+                <!-- Acabados -->
+                <div class="input-group mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        🎨 Nivel de Acabados
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="finishes" value="basic" class="text-purple-600">
+                            <span class="text-sm text-gray-700">Básicos</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="finishes" value="standard" checked class="text-purple-600">
+                            <span class="text-sm text-gray-700">Estándar</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="finishes" value="high" class="text-purple-600">
+                            <span class="text-sm text-gray-700">Altos</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="finishes" value="luxury" class="text-purple-600">
+                            <span class="text-sm text-gray-700">Lujo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Servicios Adicionales -->
+                <div class="input-group mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                        ⚡ Servicios Adicionales
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="elevator" class="text-purple-600 rounded">
+                            <span class="text-sm text-gray-700">Ascensor (S/ 80,000)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="generator" class="text-purple-600 rounded">
+                            <span class="text-sm text-gray-700">Grupo Electrógeno (S/ 35,000)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="security" class="text-purple-600 rounded" checked>
+                            <span class="text-sm text-gray-700">Sistema de Seguridad (S/ 15,000)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="solar" class="text-purple-600 rounded">
+                            <span class="text-sm text-gray-700">Paneles Solares (S/ 25,000)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Licencias -->
+                <div class="input-group mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        📋 Licencias y Permisos
+                    </label>
+                    <select id="permits" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
+                        <option value="included" selected>Incluido en cálculo</option>
+                        <option value="separate">Calcular por separado</option>
+                    </select>
+                </div>
+
+                <!-- Calculate Button -->
+                <button onclick="calculateCost()" class="btn-calculate w-full py-4 text-white font-bold rounded-lg text-lg">
+                    🧮 Calcular Costo Total
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div class="space-y-6">
+                <!-- Total Cost Card -->
+                <div id="totalCostCard" class="result-card p-6 hidden">
+                    <h3 class="text-lg font-semibold opacity-90 mb-2">Costo Total Estimado</h3>
+                    <div class="text-4xl md:text-5xl font-bold mb-2" id="totalCost">S/ 0</div>
+                    <p class="text-sm opacity-80" id="costPerSqm">S/ 0/m²</p>
+                </div>
+
+                <!-- Cost Breakdown -->
+                <div class="calculator-card p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Desglose de Costos</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-700">Obra Gris (Estructura)</span>
+                                <span class="font-semibold text-gray-800" id="grayWork">S/ 0</span>
+                            </div>
+                            <div class="cost-bar">
+                                <div class="cost-bar-fill" id="grayWorkBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-700">Acabados</span>
+                                <span class="font-semibold text-gray-800" id="finishes">S/ 0</span>
+                            </div>
+                            <div class="cost-bar">
+                                <div class="cost-bar-fill" id="finishesBar" style="width: 0%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-700">Sótanos (2 niveles)</span>
+                                <span class="font-semibold text-gray-800" id="basements">S/ 0</span>
+                            </div>
+                            <div class="cost-bar">
+                                <div class="cost-bar-fill" id="basementsBar" style="width: 0%; background: linear-gradient(90deg, #4facfe, #00f2fe);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-700">Servicios Adicionales</span>
+                                <span class="font-semibold text-gray-800" id="services">S/ 0</span>
+                            </div>
+                            <div class="cost-bar">
+                                <div class="cost-bar-fill" id="servicesBar" style="width: 0%; background: linear-gradient(90deg, #fa709a, #fee140);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-700">Licencias y Permisos</span>
+                                <span class="font-semibold text-gray-800" id="permits">S/ 0</span>
+                            </div>
+                            <div class="cost-bar">
+                                <div class="cost-bar-fill" id="permitsBar" style="width: 0%; background: linear-gradient(90deg, #a8edea, #fed6e3);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Details -->
+                <div class="calculator-card p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Detalles del Proyecto</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-gray-500">Pisos</p>
+                            <p class="font-bold text-gray-800">5 + 2 sótanos</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-gray-500">Área Total</p>
+                            <p class="font-bold text-gray-800" id="totalArea">0 m²</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-gray-500">Ubicación</p>
+                            <p class="font-bold text-gray-800">Santiago de Surco</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-gray-500">Tiempo Estimado</p>
+                            <p class="font-bold text-gray-800" id="constructionTime">0 meses</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Important Notes -->
+                <div class="calculator-card p-6 bg-yellow-50 border-2 border-yellow-200">
+                    <h3 class="text-lg font-bold text-yellow-800 mb-3">⚠️ Consideraciones Importantes</h3>
+                    <ul class="text-sm text-yellow-700 space-y-2">
+                        <li>• Los precios son referenciales para Santiago de Surco, Lima</li>
+                        <li>• No incluye costo del terreno</li>
+                        <li>• Precios actualizados a 2024</li>
+                        <li>• Puede variar según proveedor y condiciones del suelo</li>
+                        <li>• Se recomienda cotización profesional detallada</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pricing data for Santiago de Surco, Lima (2024)
+        const PRICES = {
+            quality: {
+                economic: 3500,
+                standard: 4500,
+                premium: 6000,
+                luxury: 8000
+            },
+            basement: {
+                parking: 2800,
+                mixed: 3200,
+                commercial: 3800
+            },
+            finishes: {
+                basic: 0.85,
+                standard: 1.0,
+                high: 1.25,
+                luxury: 1.6
+            },
+            services: {
+                elevator: 80000,
+                generator: 35000,
+                security: 15000,
+                solar: 25000
+            },
+            permits: {
+                license: 0.03, // 3% of construction cost
+                municipal: 0.02, // 2% of construction cost
+                utilities: 0.015 // 1.5% of construction cost
+            }
+        };
+
+        function formatCurrency(amount) {
+            return 'S/ ' + amount.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function calculateCost() {
+            // Get input values
+            const areaPerFloor = parseFloat(document.getElementById('areaPerFloor').value) || 150;
+            const qualityLevel = document.getElementById('qualityLevel').value;
+            const basementUse = document.getElementById('basementUse').value;
+            const finishesLevel = document.querySelector('input[name="finishes"]:checked').value;
+            const permitsOption = document.getElementById('permits').value;
+
+            // Calculate areas
+            const floorsArea = areaPerFloor * 5; // 5 pisos
+            const basementArea = areaPerFloor * 2; // 2 sótanos
+            const totalArea = floorsArea + basementArea;
+
+            // Base construction cost
+            const basePricePerSqm = PRICES.quality[qualityLevel];
+            const finishesMultiplier = PRICES.finishes[finishesLevel];
+            
+            // Gray work (structure) - 60% of base cost
+            const grayWorkCost = floorsArea * basePricePerSqm * 0.6 * finishesMultiplier;
+            
+            // Finishes - 40% of base cost
+            const finishesCost = floorsArea * basePricePerSqm * 0.4 * finishesMultiplier;
+            
+            // Basements cost
+            const basementPricePerSqm = PRICES.basement[basementUse];
+            const basementsCost = basementArea * basementPricePerSqm * finishesMultiplier;
+            
+            // Services
+            let servicesCost = 0;
+            if (document.getElementById('elevator').checked) servicesCost += PRICES.services.elevator;
+            if (document.getElementById('generator').checked) servicesCost += PRICES.services.generator;
+            if (document.getElementById('security').checked) servicesCost += PRICES.services.security;
+            if (document.getElementById('solar').checked) servicesCost += PRICES.services.solar;
+            
+            // Permits and licenses
+            const constructionSubtotal = grayWorkCost + finishesCost + basementsCost + servicesCost;
+            let permitsCost = 0;
+            
+            if (permitsOption === 'included') {
+                permitsCost = constructionSubtotal * (PRICES.permits.license + PRICES.permits.municipal + PRICES.permits.utilities);
+            }
+
+            // Total cost
+            const totalCost = constructionSubtotal + permitsCost;
+            const costPerSqm = totalCost / totalArea;
+
+            // Construction time estimation (months)
+            const constructionTime = Math.round(8 + (totalArea / 100) * 0.5);
+
+            // Update UI
+            document.getElementById('totalCostCard').classList.remove('hidden');
+            document.getElementById('totalCost').textContent = formatCurrency(totalCost);
+            document.getElementById('costPerSqm').textContent = formatCurrency(costPerSqm) + '/m²';
+            
+            document.getElementById('grayWork').textContent = formatCurrency(grayWorkCost);
+            document.getElementById('finishes').textConten
