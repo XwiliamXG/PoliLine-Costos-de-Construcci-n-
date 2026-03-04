@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="calculadora-logica.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Costos de Construcción - Santiago de Surco</title>
@@ -137,10 +138,10 @@
                         💎 Calidad de Construcción
                     </label>
                     <select id="qualityLevel" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
-                        <option value="economic">Económica (S/ 3,500/m²)</option>
-                        <option value="standard" selected>Estándar (S/ 4,500/m²)</option>
-                        <option value="premium">Premium (S/ 6,000/m²)</option>
-                        <option value="luxury">Lujo (S/ 8,000/m²)</option>
+                            <option value="economica">Económica (S/ 3,500/m²)</option>
+                            <option value="estandar" selected>Estándar (S/ 4,500/m²)</option>
+                            <option value="premium">Premium (S/ 6,000/m²)</option>
+                            <option value="lujo">Lujo (S/ 8,000/m²)</option>
                     </select>
                 </div>
 
@@ -150,9 +151,9 @@
                         🅿️ Uso de Sótanos
                     </label>
                     <select id="basementUse" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors">
-                        <option value="parking">Solo Estacionamiento</option>
-                        <option value="mixed" selected>Mixto (Parking + Almacén)</option>
-                        <option value="commercial">Comercial/Oficinas</option>
+                            <option value="estacionamiento">Solo Estacionamiento</option>
+                            <option value="mixto" selected>Mixto (Parking + Almacén)</option>
+                            <option value="comercial">Comercial/Oficinas</option>
                     </select>
                 </div>
 
@@ -163,19 +164,19 @@
                     </label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="finishes" value="basic" class="text-purple-600">
+                            <input type="radio" name="finishes" value="basicos" class="text-purple-600">
                             <span class="text-sm text-gray-700">Básicos</span>
                         </label>
                         <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="finishes" value="standard" checked class="text-purple-600">
+                            <input type="radio" name="finishes" value="estandar" checked class="text-purple-600">
                             <span class="text-sm text-gray-700">Estándar</span>
                         </label>
                         <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="finishes" value="high" class="text-purple-600">
+                            <input type="radio" name="finishes" value="altos" class="text-purple-600">
                             <span class="text-sm text-gray-700">Altos</span>
                         </label>
                         <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="finishes" value="luxury" class="text-purple-600">
+                            <input type="radio" name="finishes" value="lujo" class="text-purple-600">
                             <span class="text-sm text-gray-700">Lujo</span>
                         </label>
                     </div>
@@ -280,7 +281,7 @@
                         <div>
                             <div class="flex justify-between text-sm mb-1">
                                 <span class="text-gray-700">Licencias y Permisos</span>
-                                <span class="font-semibold text-gray-800" id="permits">S/ 0</span>
+                                <span class="font-semibold text-gray-800" id="permitsResult">S/ 0</span>
                             </div>
                             <div class="cost-bar">
                                 <div class="cost-bar-fill" id="permitsBar" style="width: 0%; background: linear-gradient(90deg, #a8edea, #fed6e3);"></div>
@@ -365,58 +366,47 @@
         }
 
         function calculateCost() {
-            // Get input values
-            const areaPerFloor = parseFloat(document.getElementById('areaPerFloor').value) || 150;
-            const qualityLevel = document.getElementById('qualityLevel').value;
-            const basementUse = document.getElementById('basementUse').value;
-            const finishesLevel = document.querySelector('input[name="finishes"]:checked').value;
-            const permitsOption = document.getElementById('permits').value;
+            const areaPorPiso      = parseFloat(document.getElementById('areaPerFloor').value) || 150;
+            const calidad          = document.getElementById('qualityLevel').value;
+            const usoSotano        = document.getElementById('basementUse').value;
+            const acabados         = document.querySelector('input[name="finishes"]:checked').value;
+            const incluirLicencias = document.getElementById('permits').value === 'included';
 
-            // Calculate areas
-            const floorsArea = areaPerFloor * 5; // 5 pisos
-            const basementArea = areaPerFloor * 2; // 2 sótanos
-            const totalArea = floorsArea + basementArea;
+            const serviciosExtras = {
+                ascensor:       document.getElementById('elevator').checked,
+                electrogeno:    document.getElementById('generator').checked,
+                seguridad:      document.getElementById('security').checked,
+                panelesSolares: document.getElementById('solar').checked,
+            };
 
-            // Base construction cost
-            const basePricePerSqm = PRICES.quality[qualityLevel];
-            const finishesMultiplier = PRICES.finishes[finishesLevel];
-            
-            // Gray work (structure) - 60% of base cost
-            const grayWorkCost = floorsArea * basePricePerSqm * 0.6 * finishesMultiplier;
-            
-            // Finishes - 40% of base cost
-            const finishesCost = floorsArea * basePricePerSqm * 0.4 * finishesMultiplier;
-            
-            // Basements cost
-            const basementPricePerSqm = PRICES.basement[basementUse];
-            const basementsCost = basementArea * basementPricePerSqm * finishesMultiplier;
-            
-            // Services
-            let servicesCost = 0;
-            if (document.getElementById('elevator').checked) servicesCost += PRICES.services.elevator;
-            if (document.getElementById('generator').checked) servicesCost += PRICES.services.generator;
-            if (document.getElementById('security').checked) servicesCost += PRICES.services.security;
-            if (document.getElementById('solar').checked) servicesCost += PRICES.services.solar;
-            
-            // Permits and licenses
-            const constructionSubtotal = grayWorkCost + finishesCost + basementsCost + servicesCost;
-            let permitsCost = 0;
-            
-            if (permitsOption === 'included') {
-                permitsCost = constructionSubtotal * (PRICES.permits.license + PRICES.permits.municipal + PRICES.permits.utilities);
-            }
+            const r = CalculadoraLogica.calcularCosto({
+                areaPorPiso,
+                calidad,
+                usoSotano,
+                acabados,
+                serviciosExtras,
+                incluirLicencias,
+            });
 
-            // Total cost
-            const totalCost = constructionSubtotal + permitsCost;
-            const costPerSqm = totalCost / totalArea;
-
-            // Construction time estimation (months)
-            const constructionTime = Math.round(8 + (totalArea / 100) * 0.5);
-
-            // Update UI
             document.getElementById('totalCostCard').classList.remove('hidden');
-            document.getElementById('totalCost').textContent = formatCurrency(totalCost);
-            document.getElementById('costPerSqm').textContent = formatCurrency(costPerSqm) + '/m²';
-            
-            document.getElementById('grayWork').textContent = formatCurrency(grayWorkCost);
-            document.getElementById('finishes').textConten
+            document.getElementById('totalCost').textContent  = r.formato.total;
+            document.getElementById('costPerSqm').textContent = r.formato.costoPorM2;
+            document.getElementById('grayWork').textContent   = r.formato.costoEstructura;
+            document.getElementById('finishes').textContent   = r.formato.costoAcabados;
+            document.getElementById('basements').textContent  = r.formato.costoSotanos;
+            document.getElementById('services').textContent   = r.formato.costoServicios;
+            document.getElementById('permitsResult').textContent    = r.formato.costoLicencias;
+            document.getElementById('totalArea').textContent  = r.formato.areaTotal;
+            document.getElementById('constructionTime').textContent = r.tiempoObrasMeses + ' meses';
+
+            setTimeout(() => {
+                document.getElementById('grayWorkBar').style.width   = r.porcentajes.estructura + '%';
+                document.getElementById('finishesBar').style.width   = r.porcentajes.acabados   + '%';
+                document.getElementById('basementsBar').style.width  = r.porcentajes.sotanos    + '%';
+                document.getElementById('servicesBar').style.width   = r.porcentajes.servicios  + '%';
+                document.getElementById('permitsBar').style.width    = r.porcentajes.licencias  + '%';
+            }, 50);
+        }
+    </script>
+</body>
+</html>
